@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+
+  "name": "DexChrome",
+  "description": "Dexcom Chrome extension helper.",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "dex.png",
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "permissions": [
+    "tabs",
+    "storage",
+    "webRequest",
+    "https://share1.dexcom.com/"
+  ],
+
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  }
+}
