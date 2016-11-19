@@ -94,7 +94,7 @@ function readBG(sessionId, minutes, max) {
         chrome.browserAction.setBadgeText({text: data[data.length-1].Value.toString()});
 
         // keep for one day
-	if (data.length > 288) {
+	if (data.length > 2016) {
             console.log('Shifting data array.');
 	    data.shift();
         }

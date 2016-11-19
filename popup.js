@@ -1,5 +1,22 @@
 
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function() {
+    var radio;
+
+    radio = document.getElementById('24');
+    radio.addEventListener('click', function() { showGraph(24); });
+    radio = document.getElementById('12');
+    radio.addEventListener('click', function() { showGraph(12); });
+    radio = document.getElementById('6');
+    radio.addEventListener('click', function() { showGraph(6); });
+    radio = document.getElementById('3');
+    radio.addEventListener('click', function() { showGraph(3); });
+    radio = document.getElementById('1');
+    radio.addEventListener('click', function() { showGraph(1); });
+
+    showGraph(24);
+});
+
+function showGraph(duration) {
 
     var background = chrome.extension.getBackgroundPage();
     //var x = chrome.storage.sync.get('bgData', function(obj) {
@@ -12,7 +29,12 @@ window.onload = function() {
     bgValues = [];
     bgST = [];
     for (var d in bgData) {
-	var t = new Date(parseInt(bgData[d].ST.split('(')[1].split(')')[0]));
+        var bg = bgData[d];
+	var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+
+        if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
+            continue;
+
 	bgST.push(t);
 	bgValues.push(bgData[d].Value);
     }
@@ -57,6 +79,12 @@ window.onload = function() {
     else 
         color = 'rgba(255,0,0,1)'; 
 
+    var canvas = document.getElementById("jchart");
+    var jchart = canvas.getContext("2d");
+
+    jchart.canvas.height = 500;
+    jchart.canvas.width = 800;
+
     Chart.pluginService.register({
         beforeDraw: function(chart, easing) {
             if (chart.config.options.chartArea) {
@@ -65,6 +93,7 @@ window.onload = function() {
                 var chartArea = chart.chartArea;
            
                 ctx.save();
+                ctx.clearRect(0, 0, 800, 500);
 
                 // use the height to determine color regions 
                 var height = (chartArea.bottom - chartArea.top);
@@ -82,9 +111,10 @@ window.onload = function() {
         }
     });
 
-    var jchart = document.getElementById("jchart").getContext("2d");
+    if (window.chart != undefined)
+        window.chart.destroy();
 
-    var myChart = new Chart(jchart, {
+    window.chart = new Chart(jchart, {
         type: 'line',
 	label: 'Blood Glucose',
         data: {
@@ -100,13 +130,18 @@ window.onload = function() {
 	},
 	borderWidth: 5,
 	options: {
+            //responsive: true,
             scales: {
                 yAxes: [{
 		    ticks: {
 		        beginAtZero: true,
                         min: 0,
                         max: 400
-		    }
+		    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Glucose'
+                    }
 		}],
                 xAxes: [{
                     type: 'time',
@@ -114,7 +149,7 @@ window.onload = function() {
                         display: true,
                         labelString: 'Time'
                     }
-                }]
+                }],
 	    },
 	    title: {
 	        display: true,
