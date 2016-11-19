@@ -13,7 +13,7 @@ window.onload = function() {
     bgST = [];
     for (var d in bgData) {
 	var t = new Date(parseInt(bgData[d].ST.split('(')[1].split(')')[0]));
-	bgST.push(t.getTime());
+	bgST.push(t);
 	bgValues.push(bgData[d].Value);
     }
 
@@ -65,19 +65,23 @@ window.onload = function() {
                 var chartArea = chart.chartArea;
            
                 ctx.save();
-                //console.log('left = ' + chartArea.left);
-                //console.log('top = ' + chartArea.top);
-                //console.log('right = ' + chartArea.right);
-                //console.log('bottom = ' + chartArea.bottom);
+                console.log('left = ' + chartArea.left);
+                console.log('top = ' + chartArea.top);
+                console.log('right = ' + chartArea.right);
+                console.log('bottom = ' + chartArea.bottom);
+ 
+                var height = (chartArea.bottom - chartArea.top);
 
                 ctx.fillStyle = 'rgba(255,0,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, 80);
-                ctx.fillRect(chartArea.left, chartArea.bottom-40, chartArea.right - chartArea.left, 40);
+                //ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, 80);
+                ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, height / 4);
+                //ctx.fillRect(chartArea.left, chartArea.bottom-40, chartArea.right - chartArea.left, 40);
+                ctx.fillRect(chartArea.left, chartArea.top+(height*0.875), chartArea.right - chartArea.left, 50);
                 ctx.fillStyle = 'rgba(255,200,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top+80, chartArea.right - chartArea.left, 75);
-                ctx.fillRect(chartArea.left, chartArea.bottom-80, chartArea.right - chartArea.left, 40);
+                //ctx.fillRect(chartArea.left, chartArea.top+80, chartArea.right - chartArea.left, 75);
+                //ctx.fillRect(chartArea.left, chartArea.bottom-80, chartArea.right - chartArea.left, 40);
                 ctx.fillStyle = 'rgba(0,255,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top+155, chartArea.right - chartArea.left, 80);
+                //ctx.fillRect(chartArea.left, chartArea.top+155, chartArea.right - chartArea.left, 80);
                 ctx.restore();
             }
         }

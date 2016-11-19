@@ -51,7 +51,7 @@ function login(UserName, Password) {
 	    var d = new Date();
 	    console.log(d + 'Checking dexcom..');
             
-	    readBG(sessionId, '10', '1');
+	    readBG(sessionId, '9', '1');
 	}
     }
 }
@@ -87,11 +87,11 @@ function readBG(sessionId, minutes, max) {
         else
 	    chrome.browserAction.setBadgeBackgroundColor({color: [255,0,0,64]});
 
-        chrome.browserAction.setBadgeText({text: bgData[0].Value.toString()});
-
         for (var i in bgData) {
-            data.push(bgData[i]);
+            data.push(bgData[bgData.length-i-1]);
         }
+
+        chrome.browserAction.setBadgeText({text: data[data.length-1].Value.toString()});
 
         // keep for one day
 	if (data.length > 288) {
