@@ -1,4 +1,4 @@
-
+var interval;
 var data = [];
 
 function checkParams() {
@@ -41,11 +41,13 @@ function login(UserName, Password) {
         var sessionId = JSON.parse(xhr.responseText);
 	console.log('Got SessionId: ' + sessionId);
 
+        data = [];
+
         // Now we can read data!
         readBG(sessionId, '1440', '288');
 
         // Poll every 5 minutes for a new one
-        setInterval(myTimer, 300000);
+        interval = setInterval(myTimer, 300000);
 
         function myTimer() {
 	    var d = new Date();
@@ -66,6 +68,12 @@ function readBG(sessionId, minutes, max) {
     xhr.send();
 
     xhr.onload = function() {
+        if (xhr.status != 200) {
+           clearInterval(interval);
+	   console.log('An error was received connecting to Dexcom: ' + xhr.responseText + ' (' + xhr.status + ')');
+           checkParams(); 
+        }
+
         var bgData = JSON.parse(xhr.responseText);
 	console.log(bgData);
 
