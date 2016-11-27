@@ -5,23 +5,52 @@ var warningHigh;
 var warningLow;
 var maxBGValue;
 
+var chartType;
+var duration;
+
+function show() {
+    var chartTypes = document.getElementsByName('chart');
+    var durations = document.getElementsByName('duration');
+
+    console.log(chartTypes);
+
+    for (var i = 0; i < chartTypes.length; i++) {
+        if (chartTypes[i].checked)
+            chartType = chartTypes[i].id;
+    }
+
+    for (var i = 0; i < durations.length; i++) {
+        if (durations[i].checked)
+            duration = durations[i].id;
+    }
+
+    if (chartType == 'line')
+        showGraph(duration);
+    else
+        showPie(duration);
+
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var radio;
-    var chartType;
 
     radio = document.getElementById('24');
-    radio.addEventListener('click', function() { showGraph(24); });
+    radio.addEventListener('click', show);
     radio = document.getElementById('12');
-    radio.addEventListener('click', function() { showGraph(12); });
+    radio.addEventListener('click', show);
     radio = document.getElementById('6');
-    radio.addEventListener('click', function() { showGraph(6); });
+    radio.addEventListener('click', show);
     radio = document.getElementById('3');
-    radio.addEventListener('click', function() { showGraph(3); });
+    radio.addEventListener('click', show);
     radio = document.getElementById('1');
-    radio.addEventListener('click', function() { showGraph(1); });
+    radio.addEventListener('click', show);
 
-    // default to 24 hours
-    showGraph(24);
+    radio = document.getElementById('line');
+    radio.addEventListener('click', show);
+    radio = document.getElementById('pie');
+    radio.addEventListener('click', show);
+
+    show();
 });
 
 function initialize() {
@@ -80,25 +109,49 @@ function getTitle(lastBG) {
 
 function showGraph(duration) {
 
+    // fetch our BG Data from the background page
     bgData = initialize();
 
-    console.log(bgData);
+    var bgValues = [];
+    var bgST = [];
+    var bgTotal = 0;
+    var bgCount = 0;
+    var bgAve = 0;
+    var bgMin;
+    var bgMax;
 
-    bgValues = [];
-    bgST = [];
     for (var d in bgData) {
         var bg = bgData[d];
 	var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+        var val;
 
+        // if the date exceeds our duration, skip it
         if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
             continue;
 
-	bgST.push(t);
         if (units == 'mmol/L')
-            bgValues.push(bg.Value / 18);
+            val = bg.Value / 18;
         else
-	    bgValues.push(bg.Value);
+            val = bg.Value;
+
+        // add the timestamp to our x-axis 
+	bgST.push(t);
+
+        // add the BG Value to our y-axis
+        bgValues.push(val);
+
+        // keep a running total
+        bgTotal += val;
+        bgCount++;
+
+        if (val < bgMin)
+            bgMin = val;
+        if (val > bgMax)
+            bgMax = val;
     }
+
+    // compute our average
+    bgAve = (bgTotal / bgCount);
 
     var lastBG = bgData[bgData.length-1];
     var title = getTitle(lastBG);

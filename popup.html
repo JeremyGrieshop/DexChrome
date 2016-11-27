@@ -6,16 +6,29 @@
         <script type="text/javascript" src="Chart.js"></script>
         <script type="text/javascript" src="popup.js"></script>
 
-        Timeline:
-        <input id="24" name="duration" type="radio" checked="true">24 Hours</input>
-        <input id="12" name="duration" type="radio">12 Hours</input>
-        <input id="6" name="duration" type="radio">6 Hours</input>
-        <input id="3" name="duration" type="radio">3 Hours</input>
-        <input id="1" name="duration" type="radio">1 Hour</input>
-        <br/>
-        Chart:
-        <input id="line" name="chart" type="radio">Line</input>
-        <input id="pie" name="chart" type="radio">Pie</input>
+        <table>
+            <tr>
+                <td>
+                    Timeline:
+                </td>
+                <td>
+                    <input id="24" name="duration" type="radio" checked="true">24 Hours</input>
+                    <input id="12" name="duration" type="radio">12 Hours</input>
+                    <input id="6" name="duration" type="radio">6 Hours</input>
+                    <input id="3" name="duration" type="radio">3 Hours</input>
+                    <input id="1" name="duration" type="radio">1 Hour</input>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Chart:
+                </td>
+                <td>
+                    <input id="line" name="chart" type="radio" checked="true">Line</input>
+                    <input id="pie" name="chart" type="radio">Pie</input>
+                </td>
+            </tr>
+        </table>
         <canvas id="jchart" style="height: 500px; width: 800px;"></canvas>
     </body>
 </html>
