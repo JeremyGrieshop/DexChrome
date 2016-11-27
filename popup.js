@@ -1,6 +1,13 @@
 
+var alertHigh;
+var alertLow;
+var warningHigh;
+var warningLow;
+var maxBGValue;
+
 document.addEventListener('DOMContentLoaded', function() {
     var radio;
+    var chartType;
 
     radio = document.getElementById('24');
     radio.addEventListener('click', function() { showGraph(24); });
@@ -13,33 +20,33 @@ document.addEventListener('DOMContentLoaded', function() {
     radio = document.getElementById('1');
     radio.addEventListener('click', function() { showGraph(1); });
 
+    // default to 24 hours
     showGraph(24);
 });
 
-function showGraph(duration) {
+function initialize() {
 
+    // we rely on the background page to do our xhr requests
     var background = chrome.extension.getBackgroundPage();
-    //var x = chrome.storage.sync.get('bgData', function(obj) {
-    //    console.log(obj);
-    //});
-    var bgData = [];
-    bgData = background.data;
-    console.log(bgData);
 
-    bgValues = [];
-    bgST = [];
-    for (var d in bgData) {
-        var bg = bgData[d];
-	var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+    var bgData = background.data;
+    alertHigh = background.alertHigh;
+    alertLow = background.alertLow;
+    warningHigh = background.warningHigh;
+    warningLow = background.warningLow;
+    units = background.units;
 
-        if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
-            continue;
+    // determine our units
+    if (units == 'mmol/L')
+        maxBGValue = 22.2;
+    else
+        maxBGValue = 400;
 
-	bgST.push(t);
-	bgValues.push(bgData[d].Value);
-    }
+    return bgData;
+}
 
-    var lastBG = bgData[bgData.length-1];
+function getTitle(lastBG) {
+
     var title = lastBG.Value;
 
     /*
@@ -68,6 +75,34 @@ function showGraph(duration) {
         title += '\u21ca';
     }
 
+    return title;
+}
+
+function showGraph(duration) {
+
+    bgData = initialize();
+
+    console.log(bgData);
+
+    bgValues = [];
+    bgST = [];
+    for (var d in bgData) {
+        var bg = bgData[d];
+	var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+
+        if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
+            continue;
+
+	bgST.push(t);
+        if (units == 'mmol/L')
+            bgValues.push(bg.Value / 18);
+        else
+	    bgValues.push(bg.Value);
+    }
+
+    var lastBG = bgData[bgData.length-1];
+    var title = getTitle(lastBG);
+
     if (parseInt(lastBG.Value) > 300)
         color = 'rgba(255,0,0,1)'; 
     else if (parseInt(lastBG.Value) > 200)
@@ -91,7 +126,7 @@ function showGraph(duration) {
                 var helpers = Chart.helpers;
                 var ctx = chart.chart.ctx;
                 var chartArea = chart.chartArea;
-           
+
                 ctx.save();
                 ctx.clearRect(0, 0, 800, 500);
 
@@ -99,13 +134,25 @@ function showGraph(duration) {
                 var height = (chartArea.bottom - chartArea.top);
 
                 ctx.fillStyle = 'rgba(255,0,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, height / 4);
-                ctx.fillRect(chartArea.left, chartArea.top+(height*0.875), chartArea.right - chartArea.left, height*0.125);
+                // fill in alertHigh
+                ctx.fillRect(chartArea.left, chartArea.top, 
+                    chartArea.right - chartArea.left, ((maxBGValue-alertHigh)/maxBGValue) * height);
+                // fill in alertLow
+                ctx.fillRect(chartArea.left, chartArea.top+(height*((maxBGValue-alertLow)/maxBGValue)), 
+                    chartArea.right - chartArea.left, height*(alertLow/maxBGValue));
+
                 ctx.fillStyle = 'rgba(255,200,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top + height/4, chartArea.right - chartArea.left, height / 4);
-                ctx.fillRect(chartArea.left, chartArea.top + (height*0.75), chartArea.right - chartArea.left, height*0.125);
+                // fill in warningHigh
+                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-alertHigh)/maxBGValue) * height, 
+                    chartArea.right - chartArea.left, ((alertHigh-warningHigh)/maxBGValue) * height);
+                // fill in warningLow
+                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-warningLow)/maxBGValue)*height, 
+                    chartArea.right - chartArea.left, ((warningLow-alertLow)/maxBGValue)*height);
+
                 ctx.fillStyle = 'rgba(0,255,0,0.4)';
-                ctx.fillRect(chartArea.left, chartArea.top+(height*0.5), chartArea.right - chartArea.left, height*0.25);
+                // fill in good zone
+                ctx.fillRect(chartArea.left, chartArea.top+((maxBGValue-warningHigh)/maxBGValue)*height, 
+                    chartArea.right - chartArea.left, ((warningHigh-warningLow)/maxBGValue)*height);
                 ctx.restore();
             }
         }
@@ -136,7 +183,7 @@ function showGraph(duration) {
 		    ticks: {
 		        beginAtZero: true,
                         min: 0,
-                        max: 400
+                        max: maxBGValue
 		    },
                     scaleLabel: {
                         display: true,
@@ -161,5 +208,71 @@ function showGraph(duration) {
             chartArea: {
             }
 	}
+    });
+}
+
+function showPie(duration) {
+    bgData = initialize();
+
+    console.log(bgData);
+
+    var pie = {
+        low: 0, low_w: 0, good: 0, high_w: 0, high: 0
+    };
+
+    for (var d in bgData) {
+        var bg = bgData[d];
+        var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+
+        if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
+            continue;
+
+        if (bg.Value < alertLow)
+            pie['low']++;
+        else if (bg.Value < warningLow)
+            pie['low_w']++;
+        else if (bg.Value < warningHigh)
+            pie['good']++;
+        else if (bg.Value < alertHigh)
+            pie['high_w']++;
+        else
+            pie['high']++;
+    }
+
+    var lastBG = bgData[bgData.length-1];
+    title = getTitle(lastBG);
+
+    if (window.chart != undefined)
+        window.chart.destroy();
+
+    window.chart = new Chart(jchart, {
+        type: 'pie',
+        data: {
+            labels: [
+                "Low",
+                "Low Warning",
+                "Good",
+                "High Warning",
+                "High"
+            ],
+            datasets: [
+                {
+                    data: [
+                        pie['low'],
+                        pie['low_w'],
+                        pie['good'],
+                        pie['high_w'],
+                        pie['high']
+                    ],
+                    backgroundColor: [
+                        "#FF0000",
+                        "#FFFF00",
+                        "#00FF00",
+                        "#FFFF00",
+                        "#FF0000"
+                    ]
+                }
+            ]
+        }
     });
 }

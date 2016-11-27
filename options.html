@@ -2,16 +2,80 @@
 <html>
   <head><title>DexChrome Extension Options</title></head>
   <body>
-    <label>
-        User Name:
-        <input type="text" id="UserName">
-    </label>
-    <br>
-    <label>
-        Password:
-        <input type="password" id="Password">
-    </label>
-    <br>
+    <table>
+    <tr>
+        <tr>
+            <td>
+                Bridge Server:
+            </td>
+            <td>
+                <select id="BridgeServer">
+                    <option value="share1.dexcom.com">Inside U.S.</option> 
+                    <option value="shareous1.dexcom.com">Outside U.S.</option> 
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Units:
+            </td>
+            <td>
+                <select id="Units">
+                    <option value="mg/dL">mg/dL</option>
+                    <option value="mmol/L">mmol/L</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                User Name:
+            </td>
+            <td>
+                <input type="text" id="UserName">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Password:
+            </td>
+            <td>
+                <input type="password" id="Password">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Alert High:
+            </td>
+            <td>
+                <input type="text" id="AlertHigh"></input>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Warning High:
+            </td>
+            <td>
+                <input type="text" id="WarningHigh"></input>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Alert Low:
+            </td>
+            <td>
+                <input type="text" id="AlertLow"></input>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Warning Low:
+            </td>
+            <td>
+                <input type="text" id="WarningLow"></input>
+            </td>
+        </tr>
+    </table>
+    <div id="status"></div>
     <button id="save">Save</button>
 
     <script src="options.js"></script>

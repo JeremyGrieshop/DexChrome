@@ -1,10 +1,22 @@
+
 var interval;
 var data = [];
+var alertHigh;
+var alertLow;
+var warningHigh;
+var warningLow;
+var units;
 
 function checkParams() {
     chrome.storage.sync.get({
+        BridgeServer: 'share1.dexcom.com',
+        Units: 'mg/dl',
         UserName: '',
-        Password: ''
+        Password: '',
+        AlertHigh: '300',
+        WarningHigh: '200',
+        AlertLow: '50',
+        WarningLow: '100'
     }, function(items) {
         var body = {
             "accountName": items.UserName,
@@ -12,9 +24,15 @@ function checkParams() {
             "password": items.Password
         }
 
+        alertHigh = items.AlertHigh;
+        alertLow = items.AlertLow;
+        warningHigh = items.WarningHigh;
+        warningLow = items.WarningLow;
+        units = items.Units;
+
         // now login
-        if (items.UserName && items.Password) {
-            login(items.UserName, items.Password);
+        if (items.UserName && items.Password && items.BridgeServer) {
+            login(items.BridgeServer, items.UserName, items.Password);
 	} else {
 	    console.log('UserName/Password not set..');
 	    window.setTimeout(checkParams, 3000);
@@ -22,12 +40,12 @@ function checkParams() {
     });
 }
 
-function login(UserName, Password) {
+function login(BridgeServer, UserName, Password) {
     console.log('Logging into Dexcom..');
 
     var xhr = new XMLHttpRequest();
 
-    xhr.open('POST', 'https://share1.dexcom.com/ShareWebServices/Services/General/LoginPublisherAccountByName');
+    xhr.open('POST', 'https://' + BridgeServer + '/ShareWebServices/Services/General/LoginPublisherAccountByName');
     xhr.setRequestHeader('Content-Type', 'application/json');
 
     var body = {
@@ -44,7 +62,7 @@ function login(UserName, Password) {
         data = [];
 
         // Now we can read data!
-        readBG(sessionId, '1440', '288');
+        readBG(BridgeServer, sessionId, '1440', '288');
 
         // Poll every 5 minutes for a new one
         interval = setInterval(myTimer, 300000);
@@ -53,15 +71,15 @@ function login(UserName, Password) {
 	    var d = new Date();
 	    console.log(d + 'Checking dexcom..');
             
-	    readBG(sessionId, '9', '1');
+	    readBG(BridgeServer, sessionId, '9', '1');
 	}
     }
 }
 
-function readBG(sessionId, minutes, max) {
+function readBG(BridgeServer, sessionId, minutes, max) {
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://share1.dexcom.com' +
+    xhr.open('POST', 'https://' + BridgeServer +
         '/ShareWebServices/Services/Publisher/ReadPublisherLatestGlucoseValues?sessionId=' +
         sessionId + '&minutes=' + minutes + '&maxCount=' + max);
     xhr.setRequestHeader('Content-Type', 'application/json');
@@ -77,11 +95,13 @@ function readBG(sessionId, minutes, max) {
         var bgData = JSON.parse(xhr.responseText);
 	console.log(bgData);
 
-	if (data.length > 0 && (bgData[0].ST == data[data.length-1].ST)) {
-	    console.log('Ignoring duplicate, no updates this poll..');
-	    chrome.browserAction.setBadgeText({text: ''});
+	if (data.length > 0 && bgData.length > 0) {
+            if (bgData[0].ST == data[data.length-1].ST) {
+                console.log('Ignoring duplicate, no updates this poll..');
+	        chrome.browserAction.setBadgeText({text: ''});
 
-	    return;
+	        return;
+            }
 	}
 
         if (bgData[0].Value > 300)
@@ -99,15 +119,18 @@ function readBG(sessionId, minutes, max) {
             data.push(bgData[bgData.length-i-1]);
         }
 
-        chrome.browserAction.setBadgeText({text: data[data.length-1].Value.toString()});
+        var lastBG = data[data.length-1];
+        var lastBGDate = new Date(parseInt(lastBG.ST.split('(')[1].split(')')[0]));
+
+        // only display the badge if within 7 minutes old
+        if ((new Date) - lastBGDate < (1000 * 60 * 7))
+            chrome.browserAction.setBadgeText({text: data[data.length-1].Value.toString()});
 
         // keep for one day
 	if (data.length > 288) {
             console.log('Shifting data array.');
 	    data.shift();
         }
-
-        //chrome.storage.sync.set({ 'bgData' : data });
     }
 }
 
