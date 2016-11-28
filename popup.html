@@ -6,7 +6,7 @@
         <script type="text/javascript" src="Chart.js"></script>
         <script type="text/javascript" src="popup.js"></script>
 
-        <table>
+        <table style="font-size: 10px">
             <tr>
                 <td>
                     Timeline:
@@ -29,6 +29,38 @@
                 </td>
             </tr>
         </table>
-        <canvas id="jchart" style="height: 500px; width: 800px;"></canvas>
+
+        <canvas id="jchart" style="height: 400px; width: 800px;"></canvas>
+
+        <!-- footer information -->
+        <div style="margin: 10px 75px 10px 75px; width: 80%">
+            <div id="left" style="float: left; width: 250px;">
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="average"></span> <span id="ave-units"></span><br/>AVERAGE
+                </div>
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="max"></span> <span id="max-units"></span><br/>HIGHEST READING
+                </div>
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="min"></span> <span id="min-units"></span><br/>LOWEST READING
+                </div>
+            </div>
+            <div id="right" style="float: right; width: 100px;">
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="below-range"></span> <br>BELOW RANGE
+                </div>
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="in-range"></span> <br/>IN RANGE
+                </div>
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="above-range"></span> <br/>ABOVE RANGE
+                </div>
+            </div>
+            <div id="center">
+                <div>
+                    <span style="font-weight: bold; font-size: 1.5em" id="total"></span> <br/>READINGS
+                </div>
+            </div>
+        </div>
     </body>
 </html>

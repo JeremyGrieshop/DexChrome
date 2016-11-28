@@ -5,9 +5,6 @@ var warningHigh;
 var warningLow;
 var maxBGValue;
 
-var chartType;
-var duration;
-
 function show() {
     var chartTypes = document.getElementsByName('chart');
     var durations = document.getElementsByName('duration');
@@ -74,6 +71,59 @@ function initialize() {
     return bgData;
 }
 
+function stats(bgData, duration) {
+
+    var bgTotal = 0;
+    var bgCount = 0;
+    var bgAve = 0;
+    var bgMin = 400;
+    var bgMax = 0;
+    var bgAbove = 0;
+    var bgBelow = 0;
+
+    for (var d in bgData) {
+        var bg = bgData[d];
+        var t = new Date(parseInt(bg.ST.split('(')[1].split(')')[0]));
+        var val;
+
+        // if the date exceeds our duration, skip it
+        if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
+            continue;
+
+        if (units == 'mmol/L')
+            val = bg.Value / 18;
+        else
+            val = bg.Value;
+
+        // keep a running total
+        bgTotal += val;
+        bgCount++;
+
+        if (val < bgMin)
+            bgMin = val;
+        if (val > bgMax)
+            bgMax = val;
+        if (val > warningHigh)
+            bgAbove++;
+        if (val < warningLow)
+            bgBelow++;
+    }
+
+    // compute our average
+    bgAve = Math.round(bgTotal / bgCount);
+
+    document.getElementById('total').innerHTML = bgCount;
+    document.getElementById('average').innerHTML = bgAve;
+    document.getElementById('ave-units').innerHTML = units;
+    document.getElementById('max').innerHTML = bgMax;
+    document.getElementById('max-units').innerHTML = units;
+    document.getElementById('min').innerHTML = bgMin;
+    document.getElementById('min-units').innerHTML = units;
+    document.getElementById('above-range').innerHTML = Math.round(100*(bgAbove/bgCount)) + '%';
+    document.getElementById('below-range').innerHTML = Math.round(100*(bgBelow/bgCount)) + '%';
+    document.getElementById('in-range').innerHTML = Math.round(100*(((bgCount-(bgAbove+bgBelow))/bgCount))) + '%';
+}
+
 function getTitle(lastBG) {
 
     var title = lastBG.Value;
@@ -112,13 +162,11 @@ function showGraph(duration) {
     // fetch our BG Data from the background page
     bgData = initialize();
 
+    // calculate stats
+    stats(bgData, duration);
+
     var bgValues = [];
     var bgST = [];
-    var bgTotal = 0;
-    var bgCount = 0;
-    var bgAve = 0;
-    var bgMin;
-    var bgMax;
 
     for (var d in bgData) {
         var bg = bgData[d];
@@ -139,19 +187,7 @@ function showGraph(duration) {
 
         // add the BG Value to our y-axis
         bgValues.push(val);
-
-        // keep a running total
-        bgTotal += val;
-        bgCount++;
-
-        if (val < bgMin)
-            bgMin = val;
-        if (val > bgMax)
-            bgMax = val;
     }
-
-    // compute our average
-    bgAve = (bgTotal / bgCount);
 
     var lastBG = bgData[bgData.length-1];
     var title = getTitle(lastBG);
@@ -170,7 +206,7 @@ function showGraph(duration) {
     var canvas = document.getElementById("jchart");
     var jchart = canvas.getContext("2d");
 
-    jchart.canvas.height = 500;
+    jchart.canvas.height = 400;
     jchart.canvas.width = 800;
 
     Chart.pluginService.register({
@@ -181,7 +217,7 @@ function showGraph(duration) {
                 var chartArea = chart.chartArea;
 
                 ctx.save();
-                ctx.clearRect(0, 0, 800, 500);
+                ctx.clearRect(0, 0, 800, 400);
 
                 // use the height to determine color regions 
                 var height = (chartArea.bottom - chartArea.top);
@@ -267,10 +303,11 @@ function showGraph(duration) {
 function showPie(duration) {
     bgData = initialize();
 
-    console.log(bgData);
+    // calculate stats
+    stats(bgData, duration);
 
     var pie = {
-        low: 0, low_w: 0, good: 0, high_w: 0, high: 0
+        low: 0, good: 0, high: 0
     };
 
     for (var d in bgData) {
@@ -280,14 +317,10 @@ function showPie(duration) {
         if (((new Date) - t) > (parseInt(duration) * 60 * 60 * 1000))
             continue;
 
-        if (bg.Value < alertLow)
+        if (bg.Value < warningLow)
             pie['low']++;
-        else if (bg.Value < warningLow)
-            pie['low_w']++;
         else if (bg.Value < warningHigh)
             pie['good']++;
-        else if (bg.Value < alertHigh)
-            pie['high_w']++;
         else
             pie['high']++;
     }
@@ -299,30 +332,24 @@ function showPie(duration) {
         window.chart.destroy();
 
     window.chart = new Chart(jchart, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: [
                 "Low",
-                "Low Warning",
                 "Good",
-                "High Warning",
                 "High"
             ],
             datasets: [
                 {
                     data: [
                         pie['low'],
-                        pie['low_w'],
                         pie['good'],
-                        pie['high_w'],
                         pie['high']
                     ],
                     backgroundColor: [
                         "#FF0000",
-                        "#FFFF00",
                         "#00FF00",
-                        "#FFFF00",
-                        "#FF0000"
+                        "#FFFF00"
                     ]
                 }
             ]
