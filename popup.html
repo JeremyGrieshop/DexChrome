@@ -1,7 +1,7 @@
 <html>
     <head>
     </head>
-    <body>
+    <body style="overflow: hidden">
         <script type="text/javascript" src="moment.js"></script>
         <script type="text/javascript" src="Chart.js"></script>
         <script type="text/javascript" src="popup.js"></script>
@@ -12,10 +12,10 @@
                     Timeline:
                 </td>
                 <td>
-                    <input id="24" name="duration" type="radio" checked="true">24 Hours</input>
+                    <input id="24" name="duration" type="radio">24 Hours</input>
                     <input id="12" name="duration" type="radio">12 Hours</input>
                     <input id="6" name="duration" type="radio">6 Hours</input>
-                    <input id="3" name="duration" type="radio">3 Hours</input>
+                    <input id="3" name="duration" type="radio" checked="true">3 Hours</input>
                     <input id="1" name="duration" type="radio">1 Hour</input>
                 </td>
             </tr>
@@ -30,7 +30,9 @@
             </tr>
         </table>
 
-        <canvas id="jchart" style="height: 400px; width: 800px;"></canvas>
+        <div style="width: 700px; height: 400px"> 
+            <canvas id="jchart" width="600" height="300"></canvas>
+        </div>
 
         <!-- footer information -->
         <div style="margin: 10px 75px 10px 75px; width: 80%">

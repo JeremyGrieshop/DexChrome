@@ -126,7 +126,7 @@ function stats(bgData, duration) {
 
 function getTitle(lastBG) {
 
-    var title = lastBG.Value;
+    var title = lastBG.Value + " ";
 
     /*
      * The trends seem to be:
@@ -206,9 +206,6 @@ function showGraph(duration) {
     var canvas = document.getElementById("jchart");
     var jchart = canvas.getContext("2d");
 
-    jchart.canvas.height = 400;
-    jchart.canvas.width = 800;
-
     Chart.pluginService.register({
         beforeDraw: function(chart, easing) {
             if (chart.config.options.chartArea) {
@@ -217,7 +214,7 @@ function showGraph(duration) {
                 var chartArea = chart.chartArea;
 
                 ctx.save();
-                ctx.clearRect(0, 0, 800, 400);
+                ctx.clearRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left , chartArea.bottom - chartArea.top);
 
                 // use the height to determine color regions 
                 var height = (chartArea.bottom - chartArea.top);
@@ -281,6 +278,12 @@ function showGraph(duration) {
 		}],
                 xAxes: [{
                     type: 'time',
+                    time: {
+                      displayFormats: {
+                        'minute': 'h:mm a'
+                      },
+                      tooltipFormat: 'h:mm a'
+                    },
                     scaleLabel: {
                         display: true,
                         labelString: 'Time'
