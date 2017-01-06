@@ -33,10 +33,10 @@ function checkParams() {
         // now login
         if (items.UserName && items.Password && items.BridgeServer) {
             login(items.BridgeServer, items.UserName, items.Password);
-	} else {
-	    console.log('UserName/Password not set..');
-	    window.setTimeout(checkParams, 3000);
-	}
+    } else {
+        console.log('UserName/Password not set..');
+        window.setTimeout(checkParams, 3000);
+    }
     });
 }
 
@@ -57,7 +57,7 @@ function login(BridgeServer, UserName, Password) {
     xhr.send(JSON.stringify(body));
     xhr.onload = function() {
         var sessionId = JSON.parse(xhr.responseText);
-	console.log('Got SessionId: ' + sessionId);
+    console.log('Got SessionId: ' + sessionId);
 
         data = [];
 
@@ -68,11 +68,11 @@ function login(BridgeServer, UserName, Password) {
         interval = setInterval(myTimer, 300000);
 
         function myTimer() {
-	    var d = new Date();
-	    console.log(d + 'Checking dexcom..');
+        var d = new Date();
+        console.log(d + 'Checking dexcom..');
             
-	    readBG(BridgeServer, sessionId, '9', '1');
-	}
+        readBG(BridgeServer, sessionId, '9', '1');
+    }
     }
 }
 
@@ -88,32 +88,32 @@ function readBG(BridgeServer, sessionId, minutes, max) {
     xhr.onload = function() {
         if (xhr.status != 200) {
            clearInterval(interval);
-	   console.log('An error was received connecting to Dexcom: ' + xhr.responseText + ' (' + xhr.status + ')');
+       console.log('An error was received connecting to Dexcom: ' + xhr.responseText + ' (' + xhr.status + ')');
            checkParams(); 
         }
 
         var bgData = JSON.parse(xhr.responseText);
-	console.log(bgData);
+    console.log(bgData);
 
-	if (data.length > 0 && bgData.length > 0) {
+    if (data.length > 0 && bgData.length > 0) {
             if (bgData[0].ST == data[data.length-1].ST) {
                 console.log('Ignoring duplicate, no updates this poll..');
-	        chrome.browserAction.setBadgeText({text: ''});
+            chrome.browserAction.setBadgeText({text: ''});
 
-	        return;
+            return;
             }
-	}
+    }
 
         if (bgData[0].Value > 300)
-	    chrome.browserAction.setBadgeBackgroundColor({color: [255,0,0,64]});
-	else if (bgData[0].Value > 200)
+        chrome.browserAction.setBadgeBackgroundColor({color: [255,0,0,64]});
+    else if (bgData[0].Value > 200)
             chrome.browserAction.setBadgeBackgroundColor({color: [255,165,0,64]});
         else if (bgData[0].Value > 100)
-	    chrome.browserAction.setBadgeBackgroundColor({color: [0,255,0,64]});
-	else if (bgData[0].Value > 75)
-	    chrome.browserAction.setBadgeBackgroundColor({color: [255,165,0,64]});
+        chrome.browserAction.setBadgeBackgroundColor({color: [0,255,0,64]});
+    else if (bgData[0].Value > 75)
+        chrome.browserAction.setBadgeBackgroundColor({color: [255,165,0,64]});
         else
-	    chrome.browserAction.setBadgeBackgroundColor({color: [255,0,0,64]});
+        chrome.browserAction.setBadgeBackgroundColor({color: [255,0,0,64]});
 
         for (var i in bgData) {
             data.push(bgData[bgData.length-i-1]);
@@ -123,13 +123,19 @@ function readBG(BridgeServer, sessionId, minutes, max) {
         var lastBGDate = new Date(parseInt(lastBG.ST.split('(')[1].split(')')[0]));
 
         // only display the badge if within 7 minutes old
-        if ((new Date) - lastBGDate < (1000 * 60 * 7))
+        if ((new Date) - lastBGDate < (1000 * 60 * 7)) { 
             chrome.browserAction.setBadgeText({text: data[data.length-1].Value.toString()});
+        }
+        else {
+            chrome.browserAction.setBadgeBackgroundColor({color: [0,0,0,64]});
+            chrome.browserAction.setBadgeText({text: "None"});
+        }
+
 
         // keep for one day
-	if (data.length > 288) {
+    if (data.length > 288) {
             console.log('Shifting data array.');
-	    data.shift();
+        data.shift();
         }
     }
 }

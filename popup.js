@@ -126,7 +126,7 @@ function stats(bgData, duration) {
 
 function getTitle(lastBG) {
 
-    var title = lastBG.Value;
+    var title = lastBG.Value + " ";
 
     /*
      * The trends seem to be:
@@ -182,7 +182,7 @@ function showGraph(duration) {
         else
             val = bg.Value;
 
-        // add the timestamp to our x-axis 
+        // add the timestamp to our x-axis
 	bgST.push(t);
 
         // add the BG Value to our y-axis
@@ -190,24 +190,28 @@ function showGraph(duration) {
     }
 
     var lastBG = bgData[bgData.length-1];
-    var title = getTitle(lastBG);
+    var lastBGDate = new Date(parseInt(lastBG.ST.split('(')[1].split(')')[0]));
 
-    if (parseInt(lastBG.Value) > 300)
-        color = 'rgba(255,0,0,1)'; 
-    else if (parseInt(lastBG.Value) > 200)
-        color = 'rgba(255,165,0,1)'; 
-    else if (parseInt(lastBG.Value) > 100)
-        color = 'rgba(0,255,0,1)'; 
-    else if (parseInt(lastBG.Value) > 75)
-        color = 'rgba(255,165,0,1)'; 
-    else 
-        color = 'rgba(255,0,0,1)'; 
-
+    // Display "No Data" if not within 7 minutes old
+    if ((new Date) - lastBGDate > (1000 * 60 * 7)) {
+        var title = "No Data"
+        color = 'rgba(0,0,0,1)';
+    }
+    else {
+        var title = getTitle(lastBG);
+        if (parseInt(lastBG.Value) > 300)
+            color = 'rgba(255,0,0,1)';
+        else if (parseInt(lastBG.Value) > 200)
+            color = 'rgba(255,165,0,1)';
+        else if (parseInt(lastBG.Value) > 100)
+            color = 'rgba(0,255,0,1)';
+        else if (parseInt(lastBG.Value) > 75)
+            color = 'rgba(255,165,0,1)';
+        else
+            color = 'rgba(255,0,0,1)';
+    }
     var canvas = document.getElementById("jchart");
     var jchart = canvas.getContext("2d");
-
-    jchart.canvas.height = 400;
-    jchart.canvas.width = 800;
 
     Chart.pluginService.register({
         beforeDraw: function(chart, easing) {
@@ -217,30 +221,30 @@ function showGraph(duration) {
                 var chartArea = chart.chartArea;
 
                 ctx.save();
-                ctx.clearRect(0, 0, 800, 400);
+                ctx.clearRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left , chartArea.bottom - chartArea.top);
 
-                // use the height to determine color regions 
+                // use the height to determine color regions
                 var height = (chartArea.bottom - chartArea.top);
 
                 ctx.fillStyle = 'rgba(255,0,0,0.4)';
                 // fill in alertHigh
-                ctx.fillRect(chartArea.left, chartArea.top, 
+                ctx.fillRect(chartArea.left, chartArea.top,
                     chartArea.right - chartArea.left, ((maxBGValue-alertHigh)/maxBGValue) * height);
                 // fill in alertLow
-                ctx.fillRect(chartArea.left, chartArea.top+(height*((maxBGValue-alertLow)/maxBGValue)), 
+                ctx.fillRect(chartArea.left, chartArea.top+(height*((maxBGValue-alertLow)/maxBGValue)),
                     chartArea.right - chartArea.left, height*(alertLow/maxBGValue));
 
                 ctx.fillStyle = 'rgba(255,200,0,0.4)';
                 // fill in warningHigh
-                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-alertHigh)/maxBGValue) * height, 
+                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-alertHigh)/maxBGValue) * height,
                     chartArea.right - chartArea.left, ((alertHigh-warningHigh)/maxBGValue) * height);
                 // fill in warningLow
-                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-warningLow)/maxBGValue)*height, 
+                ctx.fillRect(chartArea.left, chartArea.top + ((maxBGValue-warningLow)/maxBGValue)*height,
                     chartArea.right - chartArea.left, ((warningLow-alertLow)/maxBGValue)*height);
 
                 ctx.fillStyle = 'rgba(0,255,0,0.4)';
                 // fill in good zone
-                ctx.fillRect(chartArea.left, chartArea.top+((maxBGValue-warningHigh)/maxBGValue)*height, 
+                ctx.fillRect(chartArea.left, chartArea.top+((maxBGValue-warningHigh)/maxBGValue)*height,
                     chartArea.right - chartArea.left, ((warningHigh-warningLow)/maxBGValue)*height);
                 ctx.restore();
             }
@@ -281,6 +285,12 @@ function showGraph(duration) {
 		}],
                 xAxes: [{
                     type: 'time',
+                    time: {
+                      displayFormats: {
+                        'minute': 'h:mm a'
+                      },
+                      tooltipFormat: 'h:mm a'
+                    },
                     scaleLabel: {
                         display: true,
                         labelString: 'Time'
